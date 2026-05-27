@@ -45,8 +45,8 @@ class DiscountCodeResource extends Resource
                     TextInput::make('code')
                         ->required()
                         ->unique(ignoreRecord: true)
-                        ->formatStateUsing(fn ($state) => strtoupper((string) $state))
-                        ->dehydrateStateUsing(fn ($state) => strtoupper((string) $state))
+                        ->formatStateUsing(fn($state) => strtoupper((string) $state))
+                        ->dehydrateStateUsing(fn($state) => strtoupper((string) $state))
                         ->placeholder('e.g. WELCOME20'),
 
                     TextInput::make('description')
@@ -55,7 +55,7 @@ class DiscountCodeResource extends Resource
                     Select::make('type')
                         ->options(
                             collect(DiscountType::cases())
-                                ->mapWithKeys(fn ($c) => [$c->value => $c->label()])
+                                ->mapWithKeys(fn($c) => [$c->value => $c->label()])
                                 ->toArray()
                         )
                         ->required()
@@ -65,7 +65,7 @@ class DiscountCodeResource extends Resource
                         ->required()
                         ->numeric()
                         ->minValue(0)
-                        ->suffix(fn (Get $get) => $get('type') === 'percent' ? '%' : 'KES'),
+                        ->suffix(fn(Get $get) => $get('type') === 'percent' ? '%' : 'KES'),
                 ]),
 
             Section::make('Restrictions')
@@ -112,26 +112,26 @@ class DiscountCodeResource extends Resource
 
                 TextColumn::make('type')
                     ->formatStateUsing(
-                        fn ($state) => $state instanceof DiscountType
+                        fn($state) => $state instanceof DiscountType
                             ? $state->label()
                             : ucfirst((string) $state)
                     ),
 
                 TextColumn::make('value')
                     ->formatStateUsing(
-                        fn ($state, $record) =>
-                            $record->type === DiscountType::Percent
-                                ? "{$state}%"
-                                : 'KES ' . number_format((float)$state, 0)
+                        fn($state, $record) =>
+                        $record->type === DiscountType::Percent
+                            ? "{$state}%"
+                            : 'KES ' . number_format((float)$state, 0)
                     ),
 
                 TextColumn::make('uses_count')
                     ->label('Uses')
                     ->formatStateUsing(
-                        fn ($state, $record) =>
-                            $record->uses_limit
-                                ? "{$state} / {$record->uses_limit}"
-                                : (string) $state
+                        fn($state, $record) =>
+                        $record->uses_limit
+                            ? "{$state} / {$record->uses_limit}"
+                            : (string) $state
                     ),
 
                 IconColumn::make('is_active')
@@ -139,13 +139,16 @@ class DiscountCodeResource extends Resource
                     ->label('Active'),
 
                 TextColumn::make('expires_at')
-                    ->dateTime('d M Y')
                     ->label('Expires')
-                    ->default('Never')
-                    ->color(fn ($state) =>
-                        $state && $state !== 'Never' && \Carbon\Carbon::parse($state)->isPast()
-                            ? 'danger'
-                            : 'success'
+                    ->formatStateUsing(
+                        fn($state) =>
+                        $state ? \Carbon\Carbon::parse($state)->format('d M Y') : 'Never'
+                    )
+                    ->color(
+                        fn($state) =>
+                        blank($state)
+                            ? 'success'
+                            : (\Carbon\Carbon::parse($state)->isPast() ? 'danger' : 'success')
                     ),
             ])
             ->filters([
@@ -167,6 +170,3 @@ class DiscountCodeResource extends Resource
         ];
     }
 }
-
-
-

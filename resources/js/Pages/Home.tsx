@@ -84,6 +84,34 @@ export default function Home({ featured }: Props) {
 
             <MosaicGallery
                 title="Every board, a work of art"
+                subtitle="Straight from our workshop in Nairobi."
+                images={[
+                    // Left column — top row (bottom-aligned)
+                    { src: '/images/mosaic/211_STR_ALT_PLP.jpg', alt: 'Acacia grain' },       // L1 — 40%
+                    { src: '/images/mosaic/BB03_STR_PDP.jpg', alt: 'Oiling process' },     // L2 — 35%
+                    { src: '/images/mosaic/CB4C-W120801_STR_PLP.jpg', alt: 'Board stack' },        // L3 — 25%
+                    // Left column — bottom row (top-aligned)
+                    { src: '/images/mosaic/CB1052-1M1212175_TD_TOP__PLP.jpg', alt: 'End grain' },          // L4 — 25%
+                    { src: '/images/mosaic/CCB183-R_STR_PLP.jpg', alt: 'Walnut detail top' },  // L5 — 35% top
+                    { src: '/images/mosaic/CHY1212150_PLP_2.jpg', alt: 'Walnut detail btm' },  // L6 — 35% bottom
+                    { src: '/images/mosaic/WAL-1812175-SSF_TD_TOP__PLP.jpg', alt: 'Sanding by hand' },    // L7 — 40%
+                    // Center
+                    { src: '/images/mosaic/CHY-RST1312175_STR_PLP.jpg', alt: 'Artisan at workbench' }, // C1 — focal
+                    // Right column — left child (40/60 height split)
+                    { src: '/images/mosaic/MCR1-TD_BTM__PLP.jpg', alt: 'Olive wood surface' }, // R1 — 40% height
+                    { src: '/images/mosaic/MCS1_TD_BTM__PLP.jpg', alt: 'Finished boards' },    // R2 — 60% height
+                    // Right column — right child, top row (bottom-aligned)
+                    { src: '/images/mosaic/PM1514225-P_TD_BTM__PLP.jpg', alt: 'Board on counter' },   // R3 — 40% width
+                    { src: '/images/mosaic/R02-PIE_TD_BTM__PLP.jpg', alt: 'Workshop tools top' }, // R4 — 60% top
+                    { src: '/images/mosaic/RA01_STR_PLP.jpg', alt: 'Workshop tools btm' }, // R5 — 60% bottom
+                    // Right column — right child, bottom row (top-aligned, natural height)
+                    { src: '/images/mosaic/WAL-1812175-SSF_TD_TOP__PLP.jpg', alt: 'Board gift wrapped' }, // R6 — 30% width
+                    { src: '/images/mosaic/WAL-CCB24-S_STR_ALT_PLP.jpg', alt: 'Cheese platter' },     // R7 — 70% width
+                ]}
+            />
+
+            {/* <MosaicGallery
+                title="Every board, a work of art"
                 subtitle="Photographed straight from our workshop in Nairobi."
                 images={[
                     { src: '/images/mosaic/211_STR_ALT_PLP.jpg', alt: 'Acacia board grain close-up' },
@@ -102,7 +130,7 @@ export default function Home({ featured }: Props) {
                     { src: '/images/mosaic/WAL-1812175-SSF_TD_TOP__PLP.jpg', alt: 'Finished walnut board' },
                     { src: '/images/mosaic/WAL-CCB24-S_STR_ALT_PLP.jpg', alt: 'Board gift wrapped' },
                 ]}
-            />
+            /> */}
 
             {/* Featured products */}
             {featured.length > 0 && (
