@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+
+@layer base {
+  :root {
+    --font-display: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+  }
+
+  html {
+    font-family: var(--font-body);
+    scroll-behavior: smooth;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-stone-900 text-stone-50 px-6 py-3 rounded-xl font-medium text-sm tracking-wide hover:bg-amber-800 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 border border-stone-300 text-stone-700 px-6 py-3 rounded-xl font-medium text-sm hover:border-stone-500 hover:text-stone-900 transition-all duration-200 disabled:opacity-50;
+  }
+
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl font-medium text-sm hover:bg-green-700 active:scale-[0.98] transition-all duration-200;
+  }
+
+  /* Form inputs */
+  .input {
+    @apply w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-700/30 focus:border-amber-700 transition-colors duration-150;
+  }
+
+  .input-error {
+    @apply border-red-400 focus:ring-red-300 focus:border-red-400;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-stone-700 mb-1.5;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-stone-100;
+  }
+
+  /* Section headings */
+  .section-title {
+    /* @apply font-display text-3xl md:text-4xl text-stone-900 leading-tight; */
+    @apply text-3xl md:text-4xl text-stone-900 leading-tight;
+  }
+
+  /* Badge */
+  @layer components {
+    .badge {
+      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+
+    .badge-wood {
+      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800;
+    }
+
+    .badge-stock {
+      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+    }
+
+    .badge-low-stock {
+      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800;
+    }
+
+    .badge-out {
+      @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700;
+    }
+  }
+}

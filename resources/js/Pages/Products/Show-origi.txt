@@ -1,0 +1,256 @@
+import { Head, router } from '@inertiajs/react'
+import { useState } from 'react'
+import axios from 'axios'
+import { route } from 'ziggy-js'
+import AppLayout from '@/Components/Layout/AppLayout'
+import { Product, Variant } from '@/types'
+import { formatPrice } from '@/lib/utils'
+import { ShoppingCart, MessageCircle, ChevronDown, ChevronUp, Check } from 'lucide-react'
+
+interface Props {
+    product: Product
+    whatsapp_url: string
+    related_products: Product[]
+}
+
+export default function ProductShow({ product, whatsapp_url }: Props) {
+    // Guard: variants may be empty on a misconfigured product
+    const firstVariant = product.variants?.[0] ?? null
+    const [selectedVariant, setSelectedVariant] = useState<Variant | null>(firstVariant)
+    const [qty, setQty] = useState(1)
+    const [activeImage, setActiveImage] = useState(0)
+    const [adding, setAdding] = useState(false)
+    const [added, setAdded] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [careOpen, setCareOpen] = useState(false)
+
+    // Only show images that have a non-empty URL
+    const images = (product.images ?? []).filter(img => img.url)
+
+    async function addToCart() {
+        if (!selectedVariant) return
+        setAdding(true)
+        setError(null)
+        try {
+            await axios.post(route('cart.store'), {
+                variant_id: selectedVariant.id,
+                qty,
+            })
+            setAdded(true)
+            setTimeout(() => setAdded(false), 2500)
+            router.reload({ only: ['cart'] })
+        } catch (err: any) {
+            setError(err.response?.data?.message ?? 'Could not add to cart.')
+        } finally {
+            setAdding(false)
+        }
+    }
+
+    const waNumber = whatsapp_url.split('wa.me/')[1]?.split('?')[0] ?? ''
+    const waVariantUrl = selectedVariant
+        ? `https://wa.me/${waNumber}?text=${encodeURIComponent(
+              `Hi! I'd like to order:\n\n*${product.name}* – ${selectedVariant.name}\nPrice: ${formatPrice(selectedVariant.price)}\n\nPlease confirm availability.`
+          )}`
+        : whatsapp_url
+
+    return (
+        <AppLayout>
+            <Head title={product.name} />
+
+            <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+                    {/* ── Images ─────────────────────────────────────────── */}
+                    <div className="space-y-3">
+                        <div className="aspect-square bg-stone-100 rounded-2xl overflow-hidden">
+                            {images.length > 0 ? (
+                                <img
+                                    src={images[activeImage]?.url}
+                                    alt={images[activeImage]?.alt ?? product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-8xl">🪵</div>
+                            )}
+                        </div>
+
+                        {/* Thumbnails — only shown when >1 image */}
+                        {images.length > 1 && (
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                {images.map((img, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setActiveImage(i)}
+                                        className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                                            activeImage === i ? 'border-amber-500' : 'border-transparent'
+                                        }`}
+                                    >
+                                        {/* Use thumb for the strip, fall back to url */}
+                                        <img
+                                            src={img.thumb || img.url}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── Info ───────────────────────────────────────────── */}
+                    <div className="space-y-6">
+                        <div>
+                            {product.wood_type && (
+                                <span className="text-amber-700 text-sm font-medium uppercase tracking-wider">
+                                    {product.wood_type}
+                                </span>
+                            )}
+                            <h1 className="text-3xl font-bold text-stone-800 mt-1">{product.name}</h1>
+                            {product.description && (
+                                <p className="text-stone-500 mt-2 leading-relaxed">{product.description}</p>
+                            )}
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-3xl font-bold text-stone-800">
+                            {selectedVariant ? formatPrice(selectedVariant.price) : formatPrice(product.min_price)}
+                        </div>
+
+                        {/* No variants fallback */}
+                        {product.variants.length === 0 && (
+                            <p className="text-sm text-stone-400 italic">No variants available for this product.</p>
+                        )}
+
+                        {/* Variant selector */}
+                        {product.variants.length > 0 && (
+                            <div>
+                                <label className="block text-sm font-semibold text-stone-700 mb-2">
+                                    Size / Type
+                                    {selectedVariant && (
+                                        <span className="font-normal text-stone-400 ml-2">— {selectedVariant.name}</span>
+                                    )}
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.variants.map((v) => (
+                                        <button
+                                            key={v.id}
+                                            disabled={!v.in_stock}
+                                            onClick={() => { setSelectedVariant(v); setQty(1) }}
+                                            className={`px-4 py-2 rounded-xl border font-medium text-sm transition-all ${
+                                                selectedVariant?.id === v.id
+                                                    ? 'bg-stone-800 border-stone-800 text-white'
+                                                    : v.in_stock
+                                                        ? 'border-stone-200 text-stone-700 hover:border-stone-400'
+                                                        : 'border-stone-100 text-stone-300 cursor-not-allowed line-through'
+                                            }`}
+                                        >
+                                            {v.size ?? v.name}
+                                            {v.low_stock && v.in_stock && (
+                                                <span className="ml-1.5 text-amber-500 text-xs">
+                                                    Only {v.stock_qty} left
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Qty stepper */}
+                        {selectedVariant && (
+                            <div className="flex items-center gap-3">
+                                <label className="text-sm font-semibold text-stone-700">Qty</label>
+                                <div className="flex items-center border border-stone-200 rounded-xl overflow-hidden">
+                                    <button
+                                        onClick={() => setQty(Math.max(1, qty - 1))}
+                                        className="px-3 py-2 hover:bg-stone-100 transition-colors text-stone-600"
+                                    >−</button>
+                                    <span className="px-4 py-2 font-medium text-stone-800 min-w-[3rem] text-center">
+                                        {qty}
+                                    </span>
+                                    <button
+                                        onClick={() => setQty(Math.min(selectedVariant.stock_qty, qty + 1))}
+                                        className="px-3 py-2 hover:bg-stone-100 transition-colors text-stone-600"
+                                    >+</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Error */}
+                        {error && (
+                            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+                        )}
+
+                        {/* CTA buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button
+                                onClick={addToCart}
+                                disabled={adding || !selectedVariant?.in_stock}
+                                className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-xl
+                                           font-semibold text-base transition-all ${
+                                    added
+                                        ? 'bg-green-600 text-white'
+                                        : selectedVariant?.in_stock
+                                            ? 'bg-stone-800 hover:bg-stone-700 text-white'
+                                            : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                                }`}
+                            >
+                                {added ? (
+                                    <><Check className="w-5 h-5" /> Added!</>
+                                ) : (
+                                    <><ShoppingCart className="w-5 h-5" />
+                                        {selectedVariant?.in_stock ? 'Add to Cart' : 'Out of Stock'}
+                                    </>
+                                )}
+                            </button>
+
+                            <a
+                                href={waVariantUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-semibold
+                                           text-base bg-green-600 hover:bg-green-500 text-white transition-colors"
+                            >
+                                <MessageCircle className="w-5 h-5" /> Order via WhatsApp
+                            </a>
+                        </div>
+
+                        {/* Care instructions */}
+                        {(product.care_instructions ?? []).length > 0 && (
+                            <div className="border border-stone-200 rounded-xl overflow-hidden">
+                                <button
+                                    className="w-full flex items-center justify-between px-4 py-3
+                                               text-sm font-semibold text-stone-700 hover:bg-stone-50"
+                                    onClick={() => setCareOpen(!careOpen)}
+                                >
+                                    <span>Care instructions</span>
+                                    {careOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </button>
+                                {careOpen && (
+                                    <ul className="px-4 pb-4 space-y-2">
+                                        {product.care_instructions!.map((tip, i) => (
+                                            <li key={i} className="text-sm text-stone-600 flex gap-2">
+                                                <span className="text-amber-600 flex-shrink-0">•</span> {tip}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Long description */}
+                {product.long_description && (
+                    <div className="mt-16 max-w-3xl">
+                        <h2 className="text-2xl font-bold text-stone-800 mb-4">About this board</h2>
+                        <div
+                            className="prose prose-stone"
+                            dangerouslySetInnerHTML={{ __html: product.long_description }}
+                        />
+                    </div>
+                )}
+            </div>
+        </AppLayout>
+    )
+}

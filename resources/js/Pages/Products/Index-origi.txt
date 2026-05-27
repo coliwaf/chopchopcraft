@@ -1,0 +1,166 @@
+import { Head, router } from '@inertiajs/react'
+import { useState } from 'react'
+import AppLayout from '@/Components/Layout/AppLayout'
+import ProductCard from '@/Components/Shop/ProductCard'
+import { Product, PaginatedData } from '@/types'
+import { SlidersHorizontal, X } from 'lucide-react'
+
+interface Props {
+    products: PaginatedData<Product>
+    filters: { wood_type?: string; size?: string; sort?: string }
+    wood_types: string[]
+    sizes: string[]
+}
+
+const SORT_OPTIONS = [
+    { value: 'featured',   label: 'Featured' },
+    { value: 'price_asc',  label: 'Price: Low to High' },
+    { value: 'price_desc', label: 'Price: High to Low' },
+    { value: 'newest',     label: 'Newest' },
+]
+
+export default function ProductsIndex({ products, filters, wood_types, sizes }: Props) {
+    const [showFilters, setShowFilters] = useState(false)
+
+    function applyFilter(key: string, value: string | null) {
+        const params: Record<string, string> = { ...filters }
+        if (value) params[key] = value
+        else delete params[key]
+        router.get(route('products.index'), params, { preserveScroll: true, replace: true })
+    }
+
+    function clearFilters() {
+        router.get(route('products.index'), {}, { replace: true })
+    }
+
+    const hasFilters = filters.wood_type || filters.size
+
+    return (
+        <AppLayout>
+            <Head title="Shop All Boards" />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+                {/* Page header */}
+                <div className="flex items-end justify-between mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-stone-800">All Boards</h1>
+                        <p className="text-stone-500 mt-1">{products.total} products</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {/* Sort */}
+                        <select
+                            value={filters.sort ?? 'featured'}
+                            onChange={(e) => applyFilter('sort', e.target.value)}
+                            className="text-sm border border-stone-200 rounded-lg px-3 py-2
+                                       bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            {SORT_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+
+                        {/* Filter toggle (mobile) */}
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="flex items-center gap-1.5 text-sm border border-stone-200 rounded-lg
+                                       px-3 py-2 bg-white text-stone-700 hover:bg-stone-50 md:hidden">
+                            <SlidersHorizontal className="w-4 h-4" />
+                            Filters
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex gap-8">
+                    {/* Sidebar filters (desktop always visible, mobile toggleable) */}
+                    <aside className={`w-52 flex-shrink-0 ${showFilters ? 'block' : 'hidden'} md:block`}>
+                        <div className="sticky top-24 space-y-6">
+
+                            {hasFilters && (
+                                <button onClick={clearFilters}
+                                        className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-500 font-medium">
+                                    <X className="w-3.5 h-3.5" /> Clear all filters
+                                </button>
+                            )}
+
+                            {/* Wood type */}
+                            <div>
+                                <h3 className="font-semibold text-stone-800 text-sm mb-3">Wood type</h3>
+                                <div className="space-y-2">
+                                    {wood_types.map((wt) => (
+                                        <label key={wt} className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="wood_type"
+                                                checked={filters.wood_type === wt}
+                                                onChange={() => applyFilter('wood_type', wt)}
+                                                className="text-amber-600 focus:ring-amber-500"
+                                            />
+                                            <span className="text-sm text-stone-700">{wt}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Size */}
+                            <div>
+                                <h3 className="font-semibold text-stone-800 text-sm mb-3">Size</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {sizes.map((s) => (
+                                        <button
+                                            key={s}
+                                            onClick={() => applyFilter('size', filters.size === s ? null : s)}
+                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                                                filters.size === s
+                                                    ? 'bg-amber-600 border-amber-600 text-white'
+                                                    : 'border-stone-200 text-stone-600 hover:border-amber-400'
+                                            }`}>
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Product grid */}
+                    <div className="flex-1">
+                        {products.data.length === 0 ? (
+                            <div className="text-center py-20 text-stone-400">
+                                <div className="text-5xl mb-4">🔍</div>
+                                <p className="font-medium text-stone-600">No boards match your filters.</p>
+                                <button onClick={clearFilters} className="mt-3 text-amber-600 hover:underline text-sm">
+                                    Clear filters
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {products.data.map((product) => (
+                                    <ProductCard key={product.id} product={product} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {products.last_page > 1 && (
+                            <div className="flex justify-center gap-2 mt-10">
+                                {products.links.map((link, i) => (
+                                    <button
+                                        key={i}
+                                        disabled={!link.url}
+                                        onClick={() => link.url && router.get(link.url)}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                                            link.active
+                                                ? 'bg-amber-600 border-amber-600 text-white'
+                                                : 'border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40'
+                                        }`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </AppLayout>
+    )
+}

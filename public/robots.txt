@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Block admin and account areas from indexing
+Disallow: /admin/
+Disallow: /account/
+Disallow: /cart
+Disallow: /checkout
+
+# Block paginated/filtered pages that could cause duplicate content
+# Google will see noindex meta on these pages anyway, but belt-and-braces
+Disallow: /*?page=
+Disallow: /*?sort=
+
+# Sitemap location
+Sitemap: https://chopandco.co.ke/sitemap.xml
