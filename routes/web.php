@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Route;
 
 /* Route::get('/', function () {
     return view('welcome');
-}); */
+}); 
+
+*/
 
 // ─── Shop ─────────────────────────────────────────────────────────────────────
 Route::get('/', HomeController::class)->name('home');
@@ -69,7 +71,7 @@ Route::prefix('account')->name('account.')->middleware('auth')->group(function (
     Route::put('password',       [AccountController::class, 'updatePassword'])->name('password.update');
 });
 
-// ─── Webhooks — no CSRF, no session ───────────────────────────────────────────
+// ─── Webhooks — no CSRF, no session ────────────────────────────────────────
 // These are called by Safaricom / Stripe / PayPal servers, not browsers.
 // They must NOT use web middleware (which enforces CSRF).
 // They are defined separately in routes/api.php or excluded below.
